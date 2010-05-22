@@ -1,0 +1,132 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * Avro protocol for a "gateway" service
+ */
+@namespace("org.apache.hadoop.hbase.avro.generated")
+protocol HBase {
+
+  // TYPES
+
+  enum ACompressionAlgorithm {
+    LZO, GZ, NONE
+  }
+
+  // TODO(hammer): include COLUMN_DESCRIPTOR_VERSION?
+  // TODO(hammer): add new bloomfilter stuff
+  record AFamilyDescriptor {
+    bytes name;
+    union { ACompressionAlgorithm, null } compression;
+    union { int, null } maxVersions;
+    union { int, null } blocksize;
+    union { boolean, null } inMemory;
+    union { int, null } timeToLive;
+    union { boolean, null } blockCacheEnabled;
+  }
+
+  // TODO(hammer): include TABLE_DESCRIPTOR_VERSION?
+
+  record ATableDescriptor {
+    bytes name;
+    union { array<AFamilyDescriptor>, null } families;
+    union { long, null } maxFileSize;
+    union { long, null } memStoreFlushSize;
+    union { boolean, null } rootRegion;
+    union { boolean, null } metaRegion;
+    union { boolean, null } metaTable;
+    union { boolean, null } readOnly;
+    union { boolean, null } deferredLogFlush;
+  }
+
+  record AColumn {
+    bytes family;
+    union { bytes, null } qualifier;
+  }
+
+  record AResultEntry {
+    bytes family;
+    bytes qualifier;
+    bytes value;
+    long timestamp;
+  }
+
+  record AResult {
+    bytes row;
+    union { array<AResultEntry>, null } entries;
+  }
+
+  record ATimeRange {
+    long minStamp;
+    long maxStamp;
+  }
+
+  // TODO(hammer): Add filter options
+  record AGet {
+    bytes row;
+    union { array<AColumn>, null } columns;
+    union { long, null } timestamp;
+    union { ATimeRange, null } timerange;
+    union { int, null } maxVersions;
+  }
+
+  // ERRORS
+
+  /**
+   * An AIOError error signals that an error occurred communicating
+   * to the HBase master or a HBase region server. Also used to return
+   * more general HBase error conditions.
+   */
+  error AIOError {
+    string message;
+  }
+
+  /**
+   * An AIllegalArgument error indicates an illegal or invalid
+   * argument was passed into a procedure.
+   */
+  error AIllegalArgument {
+    string message;
+  }
+
+  /**
+   * An ATableExists error that a table with the specified
+   * name already exists
+   */
+  error ATableExists {
+    string message;
+  }
+
+  /**
+   * An AMasterNotRunning error means we couldn't reach the Master.
+   */
+  error AMasterNotRunning {
+    string message;
+  }
+
+  // MESSAGES
+
+  void createTable(ATableDescriptor table) throws AIOError, AIllegalArgument, ATableExists, AMasterNotRunning;
+  void enableTable(bytes table) throws AIOError;
+  void disableTable(bytes table) throws AIOError;
+
+  boolean isTableEnabled(bytes table) throws AIOError;
+  array<ATableDescriptor> listTables() throws AIOError;
+
+  AResult get(bytes table, AGet get) throws AIOError;
+}
