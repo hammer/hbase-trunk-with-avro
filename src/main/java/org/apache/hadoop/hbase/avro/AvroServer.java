@@ -45,16 +45,19 @@ import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.HTablePool;
 import org.apache.hadoop.hbase.client.HTable;
+import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import org.apache.hadoop.hbase.avro.generated.HBase;
 import org.apache.hadoop.hbase.avro.generated.AGet;
+import org.apache.hadoop.hbase.avro.generated.APut;
 import org.apache.hadoop.hbase.avro.generated.AResult;
 import org.apache.hadoop.hbase.avro.generated.ACompressionAlgorithm;
 import org.apache.hadoop.hbase.avro.generated.ATableDescriptor;
 import org.apache.hadoop.hbase.avro.generated.AFamilyDescriptor;
+import org.apache.hadoop.hbase.avro.generated.AColumnValue;
 import org.apache.hadoop.hbase.avro.generated.AIOError;
 import org.apache.hadoop.hbase.avro.generated.AIllegalArgument;
 import org.apache.hadoop.hbase.avro.generated.ATableExists;
@@ -243,6 +246,34 @@ public class AvroServer {
       }
       return aresult;
     }
+
+    // TODO(hammer): Java with statement for htablepool concision?
+    public Void put(ByteBuffer table, APut aput) throws AIOError {
+      HTableInterface htable = htablePool.getTable(Bytes.toBytes(table));
+      try {
+        Put put = new Put(Bytes.toBytes(aput.row));
+        for (AColumnValue acv : aput.columnValues) {
+  	  if (acv.timestamp != null) {
+	    put.add(Bytes.toBytes(acv.family),
+                    Bytes.toBytes(acv.qualifier),
+                    acv.timestamp,
+		    Bytes.toBytes(acv.value));
+	  } else {
+	    put.add(Bytes.toBytes(acv.family),
+                    Bytes.toBytes(acv.qualifier),
+		    Bytes.toBytes(acv.value));
+	  }
+        }
+        htable.put(put);
+      } catch (IOException e) {
+        AIOError ioe = new AIOError();
+        ioe.message = new Utf8(e.getMessage());
+        throw ioe;
+      } finally {
+        htablePool.putTable(htable);
+      }
+      return null;
+    }
   }
 
   //
@@ -299,6 +330,7 @@ public class AvroServer {
     Thread.sleep(1000000);
   }
 
+  // TODO(hammer): Don't eat it after a single exception
   // TODO(hammer): Figure out why we do doMain()
   // TODO(hammer): Figure out if we want String[] or String []
   public static void main(String[] args) throws Exception {

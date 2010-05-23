@@ -85,6 +85,18 @@ protocol HBase {
     union { int, null } maxVersions;
   }
 
+  record AColumnValue {
+    bytes family;
+    bytes qualifier;
+    bytes value;
+    union { long, null } timestamp;
+  }
+
+  record APut {
+    bytes row;
+    array<AColumnValue> columnValues;
+  }
+
   // ERRORS
 
   /**
@@ -129,4 +141,6 @@ protocol HBase {
   array<ATableDescriptor> listTables() throws AIOError;
 
   AResult get(bytes table, AGet get) throws AIOError;
+
+  void put(bytes table, APut put) throws AIOError;
 }
