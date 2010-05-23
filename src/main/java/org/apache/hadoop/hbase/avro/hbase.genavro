@@ -139,6 +139,8 @@ protocol HBase {
 
   boolean isTableEnabled(bytes table) throws AIOError;
   array<ATableDescriptor> listTables() throws AIOError;
+  ATableDescriptor describeTable(bytes table) throws AIOError;
+  AFamilyDescriptor describeFamily(bytes table, bytes family) throws AIOError;
 
   AResult get(bytes table, AGet get) throws AIOError;
 

@@ -176,6 +176,42 @@ public class AvroServer {
       }
     }
 
+    // TODO(hammer): Handle the case where the family does not exist better?
+    public AFamilyDescriptor describeFamily(ByteBuffer table, ByteBuffer family) throws AIOError {
+      HTableInterface htable = htablePool.getTable(Bytes.toBytes(table));
+      AFamilyDescriptor afamily = new AFamilyDescriptor();
+      try {
+	HTableDescriptor htd = htable.getTableDescriptor();
+        HColumnDescriptor hcd = htd.getFamily(Bytes.toBytes(family));
+	afamily = AvroUtilities.hcolumnDescToAFamilyDesc(hcd);
+      } catch (IOException e) {
+        AIOError ioe = new AIOError();
+        ioe.message = new Utf8(e.getMessage());
+        throw ioe;
+      } finally {
+        htablePool.putTable(htable);
+      }
+      return afamily;
+    }
+
+    // TODO(hammer): Better to use HBaseAdmin or HTableInterface?
+    // TODO(hammer): Handle the case where the table does not exist better?
+    public ATableDescriptor describeTable(ByteBuffer table) throws AIOError {
+      HTableInterface htable = htablePool.getTable(Bytes.toBytes(table));
+      ATableDescriptor atd = new ATableDescriptor();
+      try {
+	HTableDescriptor htd = htable.getTableDescriptor();
+        atd = AvroUtilities.htableDescToATableDesc(htd);
+      } catch (IOException e) {
+        AIOError ioe = new AIOError();
+        ioe.message = new Utf8(e.getMessage());
+        throw ioe;
+      } finally {
+        htablePool.putTable(htable);
+      }
+      return atd;
+    }
+
     public GenericArray<ATableDescriptor> listTables() throws AIOError {
       try {
         HTableDescriptor[] tables = this.admin.listTables();
@@ -183,39 +219,9 @@ public class AvroServer {
         GenericData.Array<ATableDescriptor> result = null;
 	result = new GenericData.Array<ATableDescriptor>(tables.length, atdSchema);
         for (HTableDescriptor table : tables) {
-	  ATableDescriptor atd = new ATableDescriptor();
-          atd.name = ByteBuffer.wrap(table.getName());
-
-	  // TODO(hammer): Refactor getting cfs into utility method
-	  Collection<HColumnDescriptor> families = table.getFamilies();
-	  if (families.size() > 0) {
-	    Schema afdSchema = Schema.createArray(AFamilyDescriptor.SCHEMA$);
-            GenericData.Array<AFamilyDescriptor> afamilies = null;
-            afamilies = new GenericData.Array<AFamilyDescriptor>(families.size(), afdSchema);
-	    for (HColumnDescriptor hcd : families) {
-	      AFamilyDescriptor afamily = new AFamilyDescriptor();
-	      afamily.name = ByteBuffer.wrap(hcd.getName());
-	      String compressionAlgorithm = hcd.getCompressionType().getName();
-	      if (compressionAlgorithm == "LZO") {
-	        afamily.compression = ACompressionAlgorithm.LZO;
-	      } else if (compressionAlgorithm == "GZ") {
-	        afamily.compression = ACompressionAlgorithm.GZ;
-	      } else {
-	        afamily.compression = ACompressionAlgorithm.NONE;
-	      }
-	      afamily.maxVersions = hcd.getMaxVersions();
-	      afamily.blocksize = hcd.getBlocksize();
-	      afamily.inMemory = hcd.isInMemory();
-	      afamily.timeToLive = hcd.getTimeToLive();
-	      afamily.blockCacheEnabled = hcd.isBlockCacheEnabled();
-	    }
-            atd.families = afamilies;
-	  }
-	  atd.maxFileSize = table.getMaxFileSize();
-	  atd.memStoreFlushSize = table.getMemStoreFlushSize();
-	  // TODO(hammer): Add optional booleans later
+	  ATableDescriptor atd = AvroUtilities.htableDescToATableDesc(table);
 	  result.add(atd);
-        }
+	}
         return result;
       } catch (IOException e) {
 	AIOError ioe = new AIOError();
