@@ -97,6 +97,15 @@ protocol HBase {
     array<AColumnValue> columnValues;
   }
 
+  record AScan {
+    union { bytes, null } startRow;
+    union { bytes, null } stopRow;
+    union { array<AColumn>, null } columns;
+    union { long, null } timestamp;
+    union { ATimeRange, null } timerange;
+    union { int, null } maxVersions;
+  }
+
   // ERRORS
 
   /**
@@ -145,4 +154,8 @@ protocol HBase {
   AResult get(bytes table, AGet get) throws AIOError;
 
   void put(bytes table, APut put) throws AIOError;
+
+  int scannerOpen(bytes table, AScan scan) throws AIOError;
+  void scannerClose(int scannerId) throws AIOError, AIllegalArgument;
+  array<AResult> scannerGetRows(int scannerId, int numberOfRows) throws AIOError, AIllegalArgument;
 }

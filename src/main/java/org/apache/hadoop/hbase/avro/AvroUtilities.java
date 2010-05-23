@@ -27,10 +27,13 @@ import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.client.Get;
+import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.avro.generated.AColumn;
 import org.apache.hadoop.hbase.avro.generated.AGet;
+import org.apache.hadoop.hbase.avro.generated.AScan;
+import org.apache.hadoop.hbase.avro.generated.AResult;
 import org.apache.hadoop.hbase.avro.generated.AResultEntry;
 import org.apache.hadoop.hbase.avro.generated.AFamilyDescriptor;
 import org.apache.hadoop.hbase.avro.generated.ATableDescriptor;
@@ -138,5 +141,51 @@ public class AvroUtilities {
     atd.readOnly = table.isReadOnly();
     atd.deferredLogFlush = table.isDeferredLogFlush();
     return atd;
+  }
+
+  static public Scan scanFromAScan(AScan ascan) throws IOException {
+    Scan scan = new Scan();
+    if (ascan.startRow != null) {
+      scan.setStartRow(Bytes.toBytes(ascan.startRow));
+    }
+    if (ascan.stopRow != null) {
+      scan.setStopRow(Bytes.toBytes(ascan.stopRow));
+    }
+    if (ascan.columns != null) {
+      for (AColumn acolumn : ascan.columns) {
+	if (acolumn.qualifier != null) {
+	  scan.addColumn(Bytes.toBytes(acolumn.family), Bytes.toBytes(acolumn.qualifier));
+	} else {
+	  scan.addFamily(Bytes.toBytes(acolumn.family));
+	}
+      }
+    }
+    if (ascan.timestamp != null) {
+      scan.setTimeStamp(ascan.timestamp);
+    }
+    if (ascan.timerange != null) {
+      scan.setTimeRange(ascan.timerange.minStamp, ascan.timerange.maxStamp);
+    }
+    if (ascan.maxVersions != null) {
+      scan.setMaxVersions(ascan.maxVersions);
+    }
+    return scan;
+  }
+
+  static public GenericArray<AResult> aresultsFromResults(Result[] results) {
+    Schema s = Schema.createArray(AResult.SCHEMA$);
+    GenericData.Array<AResult> aresults = null;
+    if (results != null && results.length > 0) {
+      aresults = new GenericData.Array<AResult>(results.length, s);
+      for (Result result : results) {
+	AResult aresult = new AResult();
+        aresult.row = ByteBuffer.wrap(result.getRow());
+        aresult.entries = resultToEntries(result);
+	aresults.add(aresult);
+      }
+    } else {
+      aresults = new GenericData.Array<AResult>(0, s);
+    }
+    return aresults;
   }
 }

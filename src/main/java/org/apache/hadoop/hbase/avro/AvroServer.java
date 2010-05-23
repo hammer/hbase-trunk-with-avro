@@ -48,11 +48,13 @@ import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
+import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import org.apache.hadoop.hbase.avro.generated.HBase;
 import org.apache.hadoop.hbase.avro.generated.AGet;
 import org.apache.hadoop.hbase.avro.generated.APut;
+import org.apache.hadoop.hbase.avro.generated.AScan;
 import org.apache.hadoop.hbase.avro.generated.AResult;
 import org.apache.hadoop.hbase.avro.generated.ACompressionAlgorithm;
 import org.apache.hadoop.hbase.avro.generated.ATableDescriptor;
@@ -85,6 +87,40 @@ public class AvroServer {
     //
     // UTILITY METHODS
     //
+
+    /**
+     * Assigns a unique ID to the scanner and adds the mapping to an internal
+     * hash-map.
+     *
+     * @param scanner
+     * @return integer scanner id
+     */
+    protected synchronized int addScanner(ResultScanner scanner) {
+      int id = nextScannerId++;
+      scannerMap.put(id, scanner);
+      return id;
+    }
+
+    /**
+     * Returns the scanner associated with the specified ID.
+     *
+     * @param id
+     * @return a Scanner, or null if ID was invalid.
+     */
+    protected synchronized ResultScanner getScanner(int id) {
+      return scannerMap.get(id);
+    }
+
+    /**
+     * Removes the scanner associated with the specified ID from the internal
+     * id->scanner hash-map.
+     *
+     * @param id
+     * @return a Scanner, or null if ID was invalid.
+     */
+    protected synchronized ResultScanner removeScanner(int id) {
+      return scannerMap.remove(id);
+    }
 
     //
     // CTOR
@@ -279,6 +315,55 @@ public class AvroServer {
         htablePool.putTable(htable);
       }
       return null;
+    }
+
+    public int scannerOpen(ByteBuffer table, AScan ascan) throws AIOError {
+      HTableInterface htable = htablePool.getTable(Bytes.toBytes(table));
+      try {
+        Scan scan = AvroUtilities.scanFromAScan(ascan);
+        return addScanner(htable.getScanner(scan));
+      } catch (IOException e) {
+    	AIOError ioe = new AIOError();
+	ioe.message = new Utf8(e.getMessage());
+        throw ioe;
+      } finally {
+        htablePool.putTable(htable);
+      }
+    }
+
+    public Void scannerClose(int scannerId) throws AIOError, AIllegalArgument {
+      try {
+        ResultScanner scanner = getScanner(scannerId);
+        if (scanner == null) {
+      	  AIllegalArgument aie = new AIllegalArgument();
+	  aie.message = new Utf8("scanner ID is invalid: " + scannerId);
+          throw aie;
+        }
+        scanner.close();
+        removeScanner(scannerId);
+      } catch (IOException e) {
+    	AIOError ioe = new AIOError();
+	ioe.message = new Utf8(e.getMessage());
+        throw ioe;
+      }
+      return null;
+    }
+
+    public GenericArray<AResult> scannerGetRows(int scannerId, int numberOfRows) throws AIOError, AIllegalArgument {
+      try {
+        ResultScanner scanner = getScanner(scannerId);
+        if (scanner == null) {
+      	  AIllegalArgument aie = new AIllegalArgument();
+	  aie.message = new Utf8("scanner ID is invalid: " + scannerId);
+          throw aie;
+        }
+        Result[] results = null;
+        return AvroUtilities.aresultsFromResults(scanner.next(numberOfRows));
+      } catch (IOException e) {
+    	AIOError ioe = new AIOError();
+	ioe.message = new Utf8(e.getMessage());
+        throw ioe;
+      }
     }
   }
 
