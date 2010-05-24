@@ -106,6 +106,12 @@ protocol HBase {
     union { int, null } maxVersions;
   }
 
+  // TODO(hammer): Add fields when API is rationalized
+  record ADelete {
+    bytes row;
+    union { array<AColumn>, null } columns;
+  }
+
   // ERRORS
 
   /**
@@ -142,6 +148,12 @@ protocol HBase {
 
   // MESSAGES
 
+  // Shell commands to implement:
+  //   status, version; alter, drop, exists
+  // Shell commands not being implemented:
+  //   count, deleteall, get_counter, incr, truncate
+  // TODO(hammer): Implement surgery tools?
+
   void createTable(ATableDescriptor table) throws AIOError, AIllegalArgument, ATableExists, AMasterNotRunning;
   void enableTable(bytes table) throws AIOError;
   void disableTable(bytes table) throws AIOError;
@@ -158,4 +170,8 @@ protocol HBase {
   int scannerOpen(bytes table, AScan scan) throws AIOError;
   void scannerClose(int scannerId) throws AIOError, AIllegalArgument;
   array<AResult> scannerGetRows(int scannerId, int numberOfRows) throws AIOError, AIllegalArgument;
+
+  // TODO(hammer): instead of column/columns/family, make like get and have
+  // timestamp, timerange, maxVersions, and filters; addColumn, addFamily too?
+  void delete(bytes table, ADelete delete) throws AIOError;
 }

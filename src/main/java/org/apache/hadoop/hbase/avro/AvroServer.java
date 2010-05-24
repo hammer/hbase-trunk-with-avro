@@ -40,6 +40,7 @@ import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.MasterNotRunningException;
 import org.apache.hadoop.hbase.TableExistsException;
+import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.HTableInterface;
@@ -52,6 +53,7 @@ import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import org.apache.hadoop.hbase.avro.generated.HBase;
+import org.apache.hadoop.hbase.avro.generated.ADelete;
 import org.apache.hadoop.hbase.avro.generated.AGet;
 import org.apache.hadoop.hbase.avro.generated.APut;
 import org.apache.hadoop.hbase.avro.generated.AScan;
@@ -363,6 +365,21 @@ public class AvroServer {
     	AIOError ioe = new AIOError();
 	ioe.message = new Utf8(e.getMessage());
         throw ioe;
+      }
+    }
+
+    public Void delete(ByteBuffer table, ADelete adelete) throws AIOError {
+      HTableInterface htable = htablePool.getTable(Bytes.toBytes(table));
+      try {
+	Delete delete = AvroUtilities.adeleteToDelete(adelete);
+        htable.delete(delete);
+        return null;
+      } catch (IOException e) {
+    	AIOError ioe = new AIOError();
+	ioe.message = new Utf8(e.getMessage());
+        throw ioe;
+      } finally {
+        htablePool.putTable(htable);
       }
     }
   }

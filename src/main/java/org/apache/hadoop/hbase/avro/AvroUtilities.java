@@ -26,11 +26,13 @@ import java.util.List;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
+import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.avro.generated.AColumn;
+import org.apache.hadoop.hbase.avro.generated.ADelete;
 import org.apache.hadoop.hbase.avro.generated.AGet;
 import org.apache.hadoop.hbase.avro.generated.AScan;
 import org.apache.hadoop.hbase.avro.generated.AResult;
@@ -187,5 +189,19 @@ public class AvroUtilities {
       aresults = new GenericData.Array<AResult>(0, s);
     }
     return aresults;
+  }
+
+  static public Delete adeleteToDelete(ADelete adelete) throws IOException {
+    Delete delete = new Delete(Bytes.toBytes(adelete.row));
+    if (adelete.columns != null) {
+      for (AColumn acolumn : adelete.columns) {
+	if (acolumn.qualifier != null) {
+	  delete.deleteColumns(Bytes.toBytes(acolumn.family), Bytes.toBytes(acolumn.qualifier));
+	} else {
+	  delete.deleteFamily(Bytes.toBytes(acolumn.family));
+	}
+      }
+    }
+    return delete;
   }
 }
