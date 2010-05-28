@@ -145,7 +145,6 @@ public class AvroServer {
     // SERVICE METHODS
     //
 
-    // TODO(hammer): Figure out AVRO-548
     public Void createTable(ATableDescriptor table) throws AIOError, 
                                                            AIllegalArgument,
                                                            ATableExists,
@@ -204,6 +203,16 @@ public class AvroServer {
       }
     }
     
+    public boolean tableExists(ByteBuffer table) throws AIOError {
+      try {
+	return admin.tableExists(Bytes.toBytes(table));
+      } catch (IOException e) {
+	AIOError ioe = new AIOError();
+	ioe.message = new Utf8(e.getMessage());
+        throw ioe;
+      }
+    }
+
     public boolean isTableEnabled(ByteBuffer table) throws AIOError {
       try {
 	return HTable.isTableEnabled(Bytes.toBytes(table));
