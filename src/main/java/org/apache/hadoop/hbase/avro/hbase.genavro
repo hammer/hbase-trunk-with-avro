@@ -155,8 +155,10 @@ protocol HBase {
   // TODO(hammer): Implement surgery tools?
 
   void createTable(ATableDescriptor table) throws AIOError, AIllegalArgument, ATableExists, AMasterNotRunning;
+  void deleteTable(bytes table) throws AIOError;
   void enableTable(bytes table) throws AIOError;
   void disableTable(bytes table) throws AIOError;
+  void flush(bytes table) throws AIOError;
 
   boolean isTableEnabled(bytes table) throws AIOError;
   boolean tableExists(bytes table) throws AIOError;

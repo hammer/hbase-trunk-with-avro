@@ -181,6 +181,32 @@ public class AvroServer {
       }
     }
 
+    // Note that disable, flush and major compaction of META needed in client
+    // TODO(hammer): more selective cache dirtying than flush?
+    public Void deleteTable(ByteBuffer table) throws AIOError {
+      try {
+	admin.deleteTable(Bytes.toBytes(table));
+	return null;
+      } catch (IOException e) {
+	AIOError ioe = new AIOError();
+	ioe.message = new Utf8(e.getMessage());
+        throw ioe;
+      }
+    }
+
+    // TODO(hammer): handle regions too?
+    // NB: Asynchronous operation
+    public Void flush(ByteBuffer table) throws AIOError {
+      try {
+	admin.flush(Bytes.toBytes(table));
+	return null;
+      } catch (IOException e) {
+	AIOError ioe = new AIOError();
+	ioe.message = new Utf8(e.getMessage());
+        throw ioe;
+      }
+    }
+
     public Void enableTable(ByteBuffer table) throws AIOError {
       try {
 	admin.enableTable(Bytes.toBytes(table));
