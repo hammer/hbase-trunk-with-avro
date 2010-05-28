@@ -151,7 +151,7 @@ protocol HBase {
   // Shell commands to implement:
   //   status; alter
   // Shell commands not being implemented:
-  //   count, deleteall, get_counter, incr, truncate
+  //   count, deleteall, get_counter, incr
   // TODO(hammer): Implement surgery tools?
 
   void createTable(ATableDescriptor table) throws AIOError, AIllegalArgument, ATableExists, AMasterNotRunning;
