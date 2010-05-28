@@ -223,6 +223,16 @@ public class AvroServer {
       }
     }
 
+    public Utf8 getHBaseVersion() throws AIOError {
+      try {
+	return new Utf8(admin.getClusterStatus().getHBaseVersion());
+      } catch (IOException e) {
+	AIOError ioe = new AIOError();
+	ioe.message = new Utf8(e.getMessage());
+        throw ioe;
+      }
+    }
+
     // TODO(hammer): Handle the case where the family does not exist better?
     public AFamilyDescriptor describeFamily(ByteBuffer table, ByteBuffer family) throws AIOError {
       HTableInterface htable = htablePool.getTable(Bytes.toBytes(table));

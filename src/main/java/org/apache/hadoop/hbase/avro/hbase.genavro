@@ -149,7 +149,7 @@ protocol HBase {
   // MESSAGES
 
   // Shell commands to implement:
-  //   status, version; alter, drop
+  //   status; alter, drop
   // Shell commands not being implemented:
   //   count, deleteall, get_counter, incr, truncate
   // TODO(hammer): Implement surgery tools?
@@ -160,6 +160,7 @@ protocol HBase {
 
   boolean isTableEnabled(bytes table) throws AIOError;
   boolean tableExists(bytes table) throws AIOError;
+  string getHBaseVersion() throws AIOError;
   array<ATableDescriptor> listTables() throws AIOError;
   ATableDescriptor describeTable(bytes table) throws AIOError;
   AFamilyDescriptor describeFamily(bytes table, bytes family) throws AIOError;
