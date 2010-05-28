@@ -149,7 +149,7 @@ protocol HBase {
   // MESSAGES
 
   // Shell commands to implement:
-  //   status, version; alter, drop, exists
+  //   status, version; alter, drop
   // Shell commands not being implemented:
   //   count, deleteall, get_counter, incr, truncate
   // TODO(hammer): Implement surgery tools?
