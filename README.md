@@ -1,4 +1,4 @@
-In this fork I hope to define and Avro "gateway" [interface](http://github.com/hammer/hbase-trunk-with-avro/blob/trunk/core/src/main/java/org/apache/hadoop/hbase/avro/hbase.genavro) to HBase as well as provide a Java service [implementation](http://github.com/hammer/hbase-trunk-with-avro/blob/trunk/core/src/main/java/org/apache/hadoop/hbase/avro/AvroServer.java).
+In this fork I hope to define and Avro "gateway" [interface](http://github.com/hammer/hbase-trunk-with-avro/blob/trunk/src/main/java/org/apache/hadoop/hbase/avro/hbase.genavro) to HBase as well as provide a Java service [implementation](http://github.com/hammer/hbase-trunk-with-avro/blob/trunk/src/main/java/org/apache/hadoop/hbase/avro/AvroServer.java).
 
 I'd like the implementation to use the new Get/Put/Delete/Scan APIs available in trunk. The scope of the work encompasses both [HBASE-2400](https://issues.apache.org/jira/browse/HBASE-2400) and [HBASE-1744](https://issues.apache.org/jira/browse/HBASE-1744).
 
