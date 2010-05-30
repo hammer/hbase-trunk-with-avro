@@ -374,10 +374,10 @@ public class AvroServer {
       }
     }
 
-    // TODO(hammer): Can Get have timestamp and timerange?
-    // TODO(hammer): Consider handling ByteBuffers as well as byte[]s
+    // TODO(hammer): Can Get have timestamp and timerange simultaneously?
     // TODO(hammer): Do I need to catch the RuntimeException of getTable?
     // TODO(hammer): Handle gets with no results
+    // TODO(hammer): Uses exists(Get) to ensure columns exist
     public AResult get(ByteBuffer table, AGet aget) throws AIOError {
       HTableInterface htable = htablePool.getTable(Bytes.toBytes(table));
       AResult aresult = new AResult();
@@ -423,6 +423,19 @@ public class AvroServer {
         htablePool.putTable(htable);
       }
       return null;
+    }
+
+    public long incrementColumnValue(ByteBuffer table, ByteBuffer row, ByteBuffer family, ByteBuffer qualifier, long amount, boolean writeToWAL) throws AIOError {
+      HTableInterface htable = htablePool.getTable(Bytes.toBytes(table));
+      try {
+	return htable.incrementColumnValue(Bytes.toBytes(row), Bytes.toBytes(family), Bytes.toBytes(qualifier), amount, writeToWAL);
+      } catch (IOException e) {
+        AIOError ioe = new AIOError();
+        ioe.message = new Utf8(e.getMessage());
+        throw ioe;
+      } finally {
+        htablePool.putTable(htable);
+      }
     }
 
     public int scannerOpen(ByteBuffer table, AScan ascan) throws AIOError {

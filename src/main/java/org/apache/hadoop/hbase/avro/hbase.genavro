@@ -198,6 +198,8 @@ protocol HBase {
   // MESSAGES
 
   // TODO(hammer): Implement surgery tools?
+  // TODO(hammer): Implement getRowOrBefore, checkAndPut, flushCommits
+  // TODO(hammer): Implement MultiPut?
 
   void createTable(ATableDescriptor table) throws AIOError, AIllegalArgument, ATableExists, AMasterNotRunning;
   void deleteTable(bytes table) throws AIOError;
@@ -221,6 +223,7 @@ protocol HBase {
   AFamilyDescriptor describeFamily(bytes table, bytes family) throws AIOError;
 
   void put(bytes table, APut put) throws AIOError;
+  long incrementColumnValue(bytes table, bytes row, bytes family, bytes qualifier, long amount, boolean writeToWAL) throws AIOError;
 
   AResult get(bytes table, AGet get) throws AIOError;
 
