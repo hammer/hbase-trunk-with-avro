@@ -53,6 +53,7 @@ import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import org.apache.hadoop.hbase.avro.generated.HBase;
+import org.apache.hadoop.hbase.avro.generated.AClusterStatus;
 import org.apache.hadoop.hbase.avro.generated.ADelete;
 import org.apache.hadoop.hbase.avro.generated.AGet;
 import org.apache.hadoop.hbase.avro.generated.APut;
@@ -302,6 +303,16 @@ public class AvroServer {
     public Utf8 getHBaseVersion() throws AIOError {
       try {
 	return new Utf8(admin.getClusterStatus().getHBaseVersion());
+      } catch (IOException e) {
+	AIOError ioe = new AIOError();
+	ioe.message = new Utf8(e.getMessage());
+        throw ioe;
+      }
+    }
+
+    public AClusterStatus getClusterStatus() throws AIOError {
+      try {
+	return AvroUtilities.clusterStatusToAClusterStatus(admin.getClusterStatus());
       } catch (IOException e) {
 	AIOError ioe = new AIOError();
 	ioe.message = new Utf8(e.getMessage());

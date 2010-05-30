@@ -106,10 +106,60 @@ protocol HBase {
     union { int, null } maxVersions;
   }
 
-  // TODO(hammer): Add fields when API is rationalized
+  // TODO(hammer): Add fields when API is rationalized (HBASE-2609)
   record ADelete {
     bytes row;
     union { array<AColumn>, null } columns;
+  }
+
+  // TODO(hammer): Best way to represent java.net.InetSocketAddress?
+  record AServerAddress {
+    string bindAddress;
+    string hostname;
+    string inetSocketAddress;
+    int port;
+  }
+
+  record ARegionLoad {
+    int memStoreSizeMB;
+    bytes name;
+    int storefileIndexSizeMB;
+    int storefiles;
+    int storefileSizeMB;
+    int stores;
+  }
+
+  record AServerLoad {
+    int load;
+    int maxHeapMB;
+    int memStoreSizeInMB;
+    int numberOfRegions;
+    int numberOfRequests;
+    union { array<ARegionLoad>, null } regionsLoad;
+    int storefileIndexSizeInMB;
+    int storefiles;
+    int storefileSizeInMB;
+    int usedHeapMB;
+  }
+
+  record AServerInfo {
+    int infoPort;
+    AServerLoad load;
+    AServerAddress serverAddress;
+    string serverName;
+    long startCode;
+  }
+
+  // TODO(hammer): Implement reusable Writable to Avro record converter?
+  record AClusterStatus {
+    double averageLoad;
+    union { array<string>, null} deadServerNames;
+    int deadServers;
+    string hbaseVersion;
+    int regionsCount;
+    int requestsCount;
+    union { array<AServerInfo>, null } serverInfos;
+    int servers;
   }
 
   // ERRORS
@@ -149,7 +199,7 @@ protocol HBase {
   // MESSAGES
 
   // Shell commands to implement:
-  //   status
+  //   status (summary, simple, detailed)
   // Shell commands not being implemented:
   //   count, deleteall, get_counter, incr
   // TODO(hammer): Implement surgery tools?
@@ -168,6 +218,7 @@ protocol HBase {
   void flush(bytes table) throws AIOError;
 
   string getHBaseVersion() throws AIOError;
+  AClusterStatus getClusterStatus() throws AIOError;
   array<ATableDescriptor> listTables() throws AIOError;
   boolean isTableEnabled(bytes table) throws AIOError;
   boolean tableExists(bytes table) throws AIOError;

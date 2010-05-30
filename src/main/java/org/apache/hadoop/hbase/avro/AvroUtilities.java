@@ -23,15 +23,24 @@ import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.hadoop.hbase.ClusterStatus;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
+import org.apache.hadoop.hbase.HServerInfo;
+import org.apache.hadoop.hbase.HServerLoad;
+import org.apache.hadoop.hbase.HServerAddress;
 import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.io.hfile.Compression;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.hadoop.hbase.avro.generated.AClusterStatus;
+import org.apache.hadoop.hbase.avro.generated.AServerInfo;
+import org.apache.hadoop.hbase.avro.generated.AServerLoad;
+import org.apache.hadoop.hbase.avro.generated.ARegionLoad;
+import org.apache.hadoop.hbase.avro.generated.AServerAddress;
 import org.apache.hadoop.hbase.avro.generated.AColumn;
 import org.apache.hadoop.hbase.avro.generated.ADelete;
 import org.apache.hadoop.hbase.avro.generated.AGet;
@@ -43,6 +52,7 @@ import org.apache.hadoop.hbase.avro.generated.ATableDescriptor;
 import org.apache.hadoop.hbase.avro.generated.ACompressionAlgorithm;
 
 import org.apache.avro.Schema;
+import org.apache.avro.util.Utf8;
 import org.apache.avro.generic.GenericArray;
 import org.apache.avro.generic.GenericData;
 
@@ -267,5 +277,90 @@ public class AvroUtilities {
       }
     }
     return delete;
+  }
+
+  static public AServerAddress hserverAddressToAServerAddress(HServerAddress hsa) throws IOException {
+    AServerAddress asa = new AServerAddress();
+    asa.bindAddress = new Utf8(hsa.getBindAddress());
+    asa.hostname = new Utf8(hsa.getHostname());
+    asa.inetSocketAddress = new Utf8(hsa.getInetSocketAddress().toString());
+    asa.port = hsa.getPort();
+    return asa;
+  }
+
+  static public ARegionLoad hregionLoadToARegionLoad(HServerLoad.RegionLoad rl) throws IOException {
+    ARegionLoad arl = new ARegionLoad();
+    arl.memStoreSizeMB = rl.getMemStoreSizeMB();
+    arl.name = ByteBuffer.wrap(rl.getName());
+    arl.storefileIndexSizeMB = rl.getStorefileIndexSizeMB();
+    arl.storefiles = rl.getStorefiles();
+    arl.storefileSizeMB = rl.getStorefileSizeMB();
+    arl.stores = rl.getStores();
+    return arl;
+  }
+
+  static public AServerLoad hserverLoadToAServerLoad(HServerLoad hsl) throws IOException {
+    AServerLoad asl = new AServerLoad();
+    asl.load = hsl.getLoad();
+    asl.maxHeapMB = hsl.getMaxHeapMB();
+    asl.memStoreSizeInMB = hsl.getMemStoreSizeInMB();
+    asl.numberOfRegions = hsl.getNumberOfRegions();
+    asl.numberOfRequests = hsl.getNumberOfRequests();
+
+    Collection<HServerLoad.RegionLoad> regionLoads = hsl.getRegionsLoad();
+    Schema s = Schema.createArray(ARegionLoad.SCHEMA$);
+    GenericData.Array<ARegionLoad> aregionLoads = null;
+    if (regionLoads != null) {
+      aregionLoads = new GenericData.Array<ARegionLoad>(regionLoads.size(), s);
+      for (HServerLoad.RegionLoad rl : regionLoads) {
+	aregionLoads.add(hregionLoadToARegionLoad(rl));
+      }
+    }
+    asl.regionsLoad = aregionLoads;
+
+    asl.storefileIndexSizeInMB = hsl.getStorefileIndexSizeInMB();
+    asl.storefiles = hsl.getStorefiles();
+    asl.storefileSizeInMB = hsl.getStorefileSizeInMB();
+    asl.usedHeapMB = hsl.getUsedHeapMB();
+    return asl;
+  }
+
+  static public AServerInfo hserverInfoToAServerInfo(HServerInfo hsi) throws IOException {
+    AServerInfo asi = new AServerInfo();
+    asi.infoPort = hsi.getInfoPort();
+    asi.load = hserverLoadToAServerLoad(hsi.getLoad());
+    asi.serverAddress = hserverAddressToAServerAddress(hsi.getServerAddress());
+    asi.serverName = new Utf8(hsi.getServerName());
+    asi.startCode = hsi.getStartCode();
+    return asi;
+  }
+
+  static public AClusterStatus clusterStatusToAClusterStatus(ClusterStatus cs) throws IOException {
+    AClusterStatus acs = new AClusterStatus();
+    acs.averageLoad = cs.getAverageLoad();
+    Collection<String> deadServerNames = cs.getDeadServerNames();
+    if (deadServerNames != null) {
+      Schema stringArraySchema = Schema.createArray(Schema.create(Schema.Type.STRING));
+      acs.deadServerNames = new GenericData.Array<Utf8>(deadServerNames.size(), stringArraySchema);
+      for (String deadServerName : deadServerNames) {
+	acs.deadServerNames.add(new Utf8(deadServerName));
+      }
+    }
+    acs.deadServers = cs.getDeadServers();
+    acs.hbaseVersion = new Utf8(cs.getHBaseVersion());
+    acs.regionsCount = cs.getRegionsCount();
+    acs.requestsCount = cs.getRequestsCount();
+    Collection<HServerInfo> hserverInfos = cs.getServerInfo();
+    Schema s = Schema.createArray(AServerInfo.SCHEMA$);
+    GenericData.Array<AServerInfo> aserverInfos = null;
+    if (hserverInfos != null) {
+      aserverInfos = new GenericData.Array<AServerInfo>(hserverInfos.size(), s);
+      for (HServerInfo hsi : hserverInfos) {
+	aserverInfos.add(hserverInfoToAServerInfo(hsi));
+      }
+    }
+    acs.serverInfos = aserverInfos;
+    acs.servers = cs.getServers();
+    return acs;
   }
 }
