@@ -362,6 +362,8 @@ Release 0.21.0 - Unreleased
    HBASE-2610  ValueFilter copy pasted javadoc from QualifierFilter
    HBASE-2619  HBase shell 'alter' command cannot set table properties to False
                (Christo Wilson via Stack)
+   HBASE-2621  Fix bad link to HFile documentation in javadoc
+               (Jeff Hammerbacher via Todd Lipcon)
 
   IMPROVEMENTS
    HBASE-1760  Cleanup TODOs in HTable
@@ -645,6 +647,8 @@ Release 0.21.0 - Unreleased
    HBASE-2538  Work on repository order in pom (adding fbmirror to top,
                ibiblio on bottom)
    HBASE-2613  Remove the code around MSG_CALL_SERVER_STARTUP
+   HBASE-2599  BaseScanner says "Current assignment of X is not valid" over
+               and over for same region
 
   NEW FEATURES
    HBASE-1961  HBase EC2 scripts
@@ -1256,6 +1260,8 @@ Release 0.20.0 - Tue Sep  8 12:53:05 PDT 2009
    HBASE-1743  [debug tool] Add regionsInTransition list to ClusterStatus
                detailed output
    HBASE-1772  Up the default ZK session timeout from 30seconds to 60seconds
+   HBASE-2625  Make testDynamicBloom()'s "randomness" deterministic
+               (Nicolas Spiegelberg via Stack)
 
   OPTIMIZATIONS
    HBASE-1412  Change values for delete column and column family in KeyValue
