@@ -41,7 +41,6 @@ protocol HBase {
   }
 
   // TODO(hammer): include TABLE_DESCRIPTOR_VERSION?
-
   record ATableDescriptor {
     bytes name;
     union { array<AFamilyDescriptor>, null } families;
@@ -198,10 +197,6 @@ protocol HBase {
 
   // MESSAGES
 
-  // Shell commands to implement:
-  //   status (summary, simple, detailed)
-  // Shell commands not being implemented:
-  //   count, deleteall, get_counter, incr
   // TODO(hammer): Implement surgery tools?
 
   void createTable(ATableDescriptor table) throws AIOError, AIllegalArgument, ATableExists, AMasterNotRunning;
