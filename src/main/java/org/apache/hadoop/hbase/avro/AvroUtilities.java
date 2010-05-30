@@ -30,6 +30,7 @@ import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.io.hfile.Compression;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.avro.generated.AColumn;
 import org.apache.hadoop.hbase.avro.generated.ADelete;
@@ -121,6 +122,40 @@ public class AvroUtilities {
     return afamily;
   }
 
+  static public HColumnDescriptor afamilyDescToHColumnDesc(AFamilyDescriptor afd) throws IOException {
+    HColumnDescriptor hcd = new HColumnDescriptor(Bytes.toBytes(afd.name));
+
+    ACompressionAlgorithm compressionAlgorithm = afd.compression;
+    if (compressionAlgorithm == ACompressionAlgorithm.LZO) {
+      hcd.setCompressionType(Compression.Algorithm.LZO);
+    } else if (compressionAlgorithm == ACompressionAlgorithm.GZ) {
+      hcd.setCompressionType(Compression.Algorithm.GZ);
+    } else {
+      hcd.setCompressionType(Compression.Algorithm.NONE);
+    }
+
+    if (afd.maxVersions != null) {
+      hcd.setMaxVersions(afd.maxVersions);
+    }
+
+    if (afd.blocksize != null) {
+      hcd.setBlocksize(afd.blocksize);
+    }
+
+    if (afd.inMemory != null) {
+      hcd.setInMemory(afd.inMemory);
+    }
+
+    if (afd.timeToLive != null) {
+      hcd.setTimeToLive(afd.timeToLive);
+    }
+
+    if (afd.blockCacheEnabled != null) {
+      hcd.setBlockCacheEnabled(afd.blockCacheEnabled);
+    }
+    return hcd;
+  }
+
   static public ATableDescriptor htableDescToATableDesc(HTableDescriptor table) throws IOException {
     ATableDescriptor atd = new ATableDescriptor();
     atd.name = ByteBuffer.wrap(table.getName());
@@ -143,6 +178,35 @@ public class AvroUtilities {
     atd.readOnly = table.isReadOnly();
     atd.deferredLogFlush = table.isDeferredLogFlush();
     return atd;
+  }
+
+  // TODO(hammer): warn if user tries to manipulate meta flags?
+  static public HTableDescriptor atableDescToHTableDesc(ATableDescriptor atd) throws IOException {
+    HTableDescriptor htd = new HTableDescriptor(Bytes.toBytes(atd.name));
+
+    if (atd.families != null && atd.families.size() > 0) {
+      for (AFamilyDescriptor afd : atd.families) {
+	htd.addFamily(afamilyDescToHColumnDesc(afd));
+      }
+    }
+
+    if (atd.maxFileSize != null) {
+      htd.setMaxFileSize(atd.maxFileSize);
+    }
+
+    if (atd.memStoreFlushSize != null) {
+      htd.setMemStoreFlushSize(atd.memStoreFlushSize);
+    }
+
+    if (atd.readOnly != null) {
+      htd.setReadOnly(atd.readOnly);
+    }
+
+    if (atd.deferredLogFlush != null) {
+      htd.setDeferredLogFlush(atd.deferredLogFlush);
+    }
+
+    return htd;
   }
 
   static public Scan scanFromAScan(AScan ascan) throws IOException {

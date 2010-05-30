@@ -194,11 +194,61 @@ public class AvroServer {
       }
     }
 
+    // NB: Asynchronous operation
+    public Void modifyTable(ByteBuffer tableName, ATableDescriptor tableDescriptor) throws AIOError {
+      try {
+	admin.modifyTable(Bytes.toBytes(tableName),
+                          AvroUtilities.atableDescToHTableDesc(tableDescriptor));
+	return null;
+      } catch (IOException e) {
+	AIOError ioe = new AIOError();
+	ioe.message = new Utf8(e.getMessage());
+        throw ioe;
+      }
+    }
+
     // TODO(hammer): handle regions too?
     // NB: Asynchronous operation
     public Void flush(ByteBuffer table) throws AIOError {
       try {
 	admin.flush(Bytes.toBytes(table));
+	return null;
+      } catch (IOException e) {
+	AIOError ioe = new AIOError();
+	ioe.message = new Utf8(e.getMessage());
+        throw ioe;
+      }
+    }
+
+    public Void addFamily(ByteBuffer table, AFamilyDescriptor family) throws AIOError {
+      try {
+	admin.addColumn(Bytes.toBytes(table), 
+                        AvroUtilities.afamilyDescToHColumnDesc(family));
+	return null;
+      } catch (IOException e) {
+	AIOError ioe = new AIOError();
+	ioe.message = new Utf8(e.getMessage());
+        throw ioe;
+      }
+    }
+
+    // NB: Asynchronous operation
+    public Void deleteFamily(ByteBuffer table, ByteBuffer family) throws AIOError {
+      try {
+	admin.deleteColumn(Bytes.toBytes(table), Bytes.toBytes(family));
+	return null;
+      } catch (IOException e) {
+	AIOError ioe = new AIOError();
+	ioe.message = new Utf8(e.getMessage());
+        throw ioe;
+      }
+    }
+
+    // NB: Asynchronous operation
+    public Void modifyFamily(ByteBuffer table, ByteBuffer familyName, AFamilyDescriptor familyDescriptor) throws AIOError {
+      try {
+	admin.modifyColumn(Bytes.toBytes(table), Bytes.toBytes(familyName),
+                           AvroUtilities.afamilyDescToHColumnDesc(familyDescriptor));
 	return null;
       } catch (IOException e) {
 	AIOError ioe = new AIOError();

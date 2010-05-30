@@ -149,33 +149,39 @@ protocol HBase {
   // MESSAGES
 
   // Shell commands to implement:
-  //   status; alter
+  //   status
   // Shell commands not being implemented:
   //   count, deleteall, get_counter, incr
   // TODO(hammer): Implement surgery tools?
 
   void createTable(ATableDescriptor table) throws AIOError, AIllegalArgument, ATableExists, AMasterNotRunning;
   void deleteTable(bytes table) throws AIOError;
+  void modifyTable(bytes table, ATableDescriptor tableDescriptor) throws AIOError;
+
+  void addFamily(bytes table, AFamilyDescriptor family) throws AIOError;
+  void deleteFamily(bytes table, bytes family) throws AIOError;
+  void modifyFamily(bytes table, bytes familyName, AFamilyDescriptor familyDescriptor) throws AIOError;
+
   void enableTable(bytes table) throws AIOError;
   void disableTable(bytes table) throws AIOError;
+
   void flush(bytes table) throws AIOError;
 
-  boolean isTableEnabled(bytes table) throws AIOError;
-  boolean tableExists(bytes table) throws AIOError;
   string getHBaseVersion() throws AIOError;
   array<ATableDescriptor> listTables() throws AIOError;
+  boolean isTableEnabled(bytes table) throws AIOError;
+  boolean tableExists(bytes table) throws AIOError;
   ATableDescriptor describeTable(bytes table) throws AIOError;
   AFamilyDescriptor describeFamily(bytes table, bytes family) throws AIOError;
 
-  AResult get(bytes table, AGet get) throws AIOError;
-
   void put(bytes table, APut put) throws AIOError;
+
+  AResult get(bytes table, AGet get) throws AIOError;
 
   int scannerOpen(bytes table, AScan scan) throws AIOError;
   void scannerClose(int scannerId) throws AIOError, AIllegalArgument;
   array<AResult> scannerGetRows(int scannerId, int numberOfRows) throws AIOError, AIllegalArgument;
 
-  // TODO(hammer): instead of column/columns/family, make like get and have
-  // timestamp, timerange, maxVersions, and filters; addColumn, addFamily too?
+  // TODO(hammer): New API discussion at HBASE-2609
   void delete(bytes table, ADelete delete) throws AIOError;
 }
