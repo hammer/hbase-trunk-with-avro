@@ -364,6 +364,8 @@ Release 0.21.0 - Unreleased
                (Christo Wilson via Stack)
    HBASE-2621  Fix bad link to HFile documentation in javadoc
                (Jeff Hammerbacher via Todd Lipcon)
+   HBASE-2371  Fix 'list' command in shell (Alexey Kovyrin via Todd Lipcon)
+   HBASE-2620  REST tests don't use ephemeral ports
 
   IMPROVEMENTS
    HBASE-1760  Cleanup TODOs in HTable
@@ -649,6 +651,9 @@ Release 0.21.0 - Unreleased
    HBASE-2613  Remove the code around MSG_CALL_SERVER_STARTUP
    HBASE-2599  BaseScanner says "Current assignment of X is not valid" over
                and over for same region
+   HBASE-2630  HFile should use toStringBinary in various places
+   HBASE-2632  Shell should autodetect terminal width
+   HBASE-2636  Upgrade Jetty to 6.1.24
 
   NEW FEATURES
    HBASE-1961  HBase EC2 scripts
@@ -1029,6 +1034,8 @@ Release 0.20.0 - Tue Sep  8 12:53:05 PDT 2009
    HBASE-2352  Small values for hbase.client.retries.number and
                ipc.client.connect.max.retries breaks long ops in hbase shell
                (Alexey Kovyrin via Stack)
+   HBASE-2531  32-bit encoding of regionnames waaaaaaayyyyy too susceptible to
+               hash clashes (Kannan Muthukkaruppan via Stack)
 
   IMPROVEMENTS
    HBASE-1089  Add count of regions on filesystem to master UI; add percentage
