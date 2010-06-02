@@ -366,6 +366,11 @@ Release 0.21.0 - Unreleased
                (Jeff Hammerbacher via Todd Lipcon)
    HBASE-2371  Fix 'list' command in shell (Alexey Kovyrin via Todd Lipcon)
    HBASE-2620  REST tests don't use ephemeral ports
+   HBASE-2635  ImmutableBytesWritable ignores offset in several cases
+   HBASE-2654  Add additional maven repository temporarily to fetch Guava
+   HBASE-2560  Fix IllegalArgumentException when manually splitting table
+               from web UI
+   HBASE-2657  TestTableResource is broken in trunk
 
   IMPROVEMENTS
    HBASE-1760  Cleanup TODOs in HTable
@@ -654,6 +659,8 @@ Release 0.21.0 - Unreleased
    HBASE-2630  HFile should use toStringBinary in various places
    HBASE-2632  Shell should autodetect terminal width
    HBASE-2636  Upgrade Jetty to 6.1.24
+   HBASE-2437  Refactor HLog splitLog (Cosmin Lehene via Stack)
+   HBASE-2638  Speed up REST tests
 
   NEW FEATURES
    HBASE-1961  HBase EC2 scripts
@@ -690,6 +697,10 @@ Release 0.21.0 - Unreleased
    HBASE-2527  Add the ability to easily extend some HLog actions
    HBASE-2559  Set hbase.hregion.majorcompaction to 0 to disable
    HBASE-1200  Add bloomfilters (Nicolas Spiegelberg via Stack)
+   HBASE-2588  Add easier way to ship HBase dependencies to MR cluster within Job
+   HBASE-1923  Bulk incremental load into an existing table
+   HBASE-2653  Remove unused DynamicBloomFilter (especially as its tests are
+               failing hudson on occasion)
 
   OPTIMIZATIONS
    HBASE-410   [testing] Speed up the test suite
