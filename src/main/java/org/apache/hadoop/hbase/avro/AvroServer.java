@@ -43,30 +43,30 @@ import org.apache.hadoop.hbase.TableExistsException;
 import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
+import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.HTablePool;
-import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.util.Bytes;
 
-import org.apache.hadoop.hbase.avro.generated.HBase;
 import org.apache.hadoop.hbase.avro.generated.AClusterStatus;
-import org.apache.hadoop.hbase.avro.generated.ADelete;
-import org.apache.hadoop.hbase.avro.generated.AGet;
-import org.apache.hadoop.hbase.avro.generated.APut;
-import org.apache.hadoop.hbase.avro.generated.AScan;
-import org.apache.hadoop.hbase.avro.generated.AResult;
-import org.apache.hadoop.hbase.avro.generated.ACompressionAlgorithm;
-import org.apache.hadoop.hbase.avro.generated.ATableDescriptor;
-import org.apache.hadoop.hbase.avro.generated.AFamilyDescriptor;
 import org.apache.hadoop.hbase.avro.generated.AColumnValue;
-import org.apache.hadoop.hbase.avro.generated.AIOError;
+import org.apache.hadoop.hbase.avro.generated.ACompressionAlgorithm;
+import org.apache.hadoop.hbase.avro.generated.ADelete;
+import org.apache.hadoop.hbase.avro.generated.AFamilyDescriptor;
+import org.apache.hadoop.hbase.avro.generated.AGet;
 import org.apache.hadoop.hbase.avro.generated.AIllegalArgument;
-import org.apache.hadoop.hbase.avro.generated.ATableExists;
+import org.apache.hadoop.hbase.avro.generated.AIOError;
 import org.apache.hadoop.hbase.avro.generated.AMasterNotRunning;
+import org.apache.hadoop.hbase.avro.generated.APut;
+import org.apache.hadoop.hbase.avro.generated.AResult;
+import org.apache.hadoop.hbase.avro.generated.AScan;
+import org.apache.hadoop.hbase.avro.generated.ATableDescriptor;
+import org.apache.hadoop.hbase.avro.generated.ATableExists;
+import org.apache.hadoop.hbase.avro.generated.HBase;
 
 /**
  * Start an Avro server
@@ -78,6 +78,9 @@ public class AvroServer {
    * HBase client API primarily defined in the HBaseAdmin and HTable objects.
    */
   public static class HBaseImpl implements HBase {
+    //
+    // PROPERTIES
+    //
     protected Configuration conf = null;
     protected HBaseAdmin admin = null;
     protected HTablePool htablePool = null;
@@ -126,10 +129,10 @@ public class AvroServer {
     }
 
     //
-    // CTOR
+    // CTOR METHODS
     //
 
-    // TODO(hammer): figure out how to set maxSize for HTablePool
+    // TODO(hammer): figure out appropriate setting of maxSize for htablePool
     /**
      * Constructs an HBaseImpl object.
      * 
@@ -146,22 +149,110 @@ public class AvroServer {
     // SERVICE METHODS
     //
 
+    // TODO(hammer): Investigate use of the Command design pattern
+
+    //
+    // Cluster metadata
+    //
+
+    public Utf8 getHBaseVersion() throws AIOError {
+      try {
+	return new Utf8(admin.getClusterStatus().getHBaseVersion());
+      } catch (IOException e) {
+	AIOError ioe = new AIOError();
+	ioe.message = new Utf8(e.getMessage());
+        throw ioe;
+      }
+    }
+
+    public AClusterStatus getClusterStatus() throws AIOError {
+      try {
+	return AvroUtil.csToACS(admin.getClusterStatus());
+      } catch (IOException e) {
+	AIOError ioe = new AIOError();
+	ioe.message = new Utf8(e.getMessage());
+        throw ioe;
+      }
+    }
+
+    public GenericArray<ATableDescriptor> listTables() throws AIOError {
+      try {
+        HTableDescriptor[] tables = admin.listTables();
+	Schema atdSchema = Schema.createArray(ATableDescriptor.SCHEMA$);
+        GenericData.Array<ATableDescriptor> result = null;
+	result = new GenericData.Array<ATableDescriptor>(tables.length, atdSchema);
+        for (HTableDescriptor table : tables) {
+	  result.add(AvroUtil.htdToATD(table));
+	}
+        return result;
+      } catch (IOException e) {
+	AIOError ioe = new AIOError();
+	ioe.message = new Utf8(e.getMessage());
+        throw ioe;
+      }
+    }
+
+    //
+    // Table metadata
+    //
+
+    // TODO(hammer): Handle the case where the table does not exist explicitly?
+    public ATableDescriptor describeTable(ByteBuffer table) throws AIOError {
+      try {
+	return AvroUtil.htdToATD(admin.getTableDescriptor(Bytes.toBytes(table)));
+      } catch (IOException e) {
+        AIOError ioe = new AIOError();
+        ioe.message = new Utf8(e.getMessage());
+        throw ioe;
+      }
+    }
+
+    public boolean isTableEnabled(ByteBuffer table) throws AIOError {
+      try {
+	return admin.isTableEnabled(Bytes.toBytes(table));
+      } catch (IOException e) {
+	AIOError ioe = new AIOError();
+	ioe.message = new Utf8(e.getMessage());
+        throw ioe;
+      }
+    }
+
+    public boolean tableExists(ByteBuffer table) throws AIOError {
+      try {
+	return admin.tableExists(Bytes.toBytes(table));
+      } catch (IOException e) {
+	AIOError ioe = new AIOError();
+	ioe.message = new Utf8(e.getMessage());
+        throw ioe;
+      }
+    }
+
+    //
+    // Family metadata
+    //
+
+    // TODO(hammer): Handle the case where the family does not exist explicitly?
+    public AFamilyDescriptor describeFamily(ByteBuffer table, ByteBuffer family) throws AIOError {
+      try {
+	HTableDescriptor htd = admin.getTableDescriptor(Bytes.toBytes(table));
+	return AvroUtil.hcdToAFD(htd.getFamily(Bytes.toBytes(family)));
+      } catch (IOException e) {
+        AIOError ioe = new AIOError();
+        ioe.message = new Utf8(e.getMessage());
+        throw ioe;
+      }
+    }
+
+    //
+    // Table admin
+    //
+
     public Void createTable(ATableDescriptor table) throws AIOError, 
                                                            AIllegalArgument,
                                                            ATableExists,
                                                            AMasterNotRunning {
       try {
-	HTableDescriptor newTable = null;
-	if (table.families != null) {
-	  // TODO(hammer): use other AFD properties, not just name 
-          newTable = new HTableDescriptor(Bytes.toBytes(table.name));
-	  for (AFamilyDescriptor aNewFamily : table.families) {
-	    newTable.addFamily(new HColumnDescriptor(Bytes.toBytes(aNewFamily.name)));
-	  }
-	} else {
-	  newTable = new HTableDescriptor(Bytes.toBytes(table.name));
-	}
-        admin.createTable(newTable);
+        admin.createTable(AvroUtil.atdToHTD(table));
 	return null;
       } catch (IllegalArgumentException e) {
 	AIllegalArgument iae = new AIllegalArgument();
@@ -182,7 +273,7 @@ public class AvroServer {
       }
     }
 
-    // Note that disable, flush and major compaction of META needed in client
+    // Note that disable, flush and major compaction of .META. needed in client
     // TODO(hammer): more selective cache dirtying than flush?
     public Void deleteTable(ByteBuffer table) throws AIOError {
       try {
@@ -199,57 +290,7 @@ public class AvroServer {
     public Void modifyTable(ByteBuffer tableName, ATableDescriptor tableDescriptor) throws AIOError {
       try {
 	admin.modifyTable(Bytes.toBytes(tableName),
-                          AvroUtilities.atableDescToHTableDesc(tableDescriptor));
-	return null;
-      } catch (IOException e) {
-	AIOError ioe = new AIOError();
-	ioe.message = new Utf8(e.getMessage());
-        throw ioe;
-      }
-    }
-
-    // TODO(hammer): handle regions too?
-    // NB: Asynchronous operation
-    public Void flush(ByteBuffer table) throws AIOError {
-      try {
-	admin.flush(Bytes.toBytes(table));
-	return null;
-      } catch (IOException e) {
-	AIOError ioe = new AIOError();
-	ioe.message = new Utf8(e.getMessage());
-        throw ioe;
-      }
-    }
-
-    public Void addFamily(ByteBuffer table, AFamilyDescriptor family) throws AIOError {
-      try {
-	admin.addColumn(Bytes.toBytes(table), 
-                        AvroUtilities.afamilyDescToHColumnDesc(family));
-	return null;
-      } catch (IOException e) {
-	AIOError ioe = new AIOError();
-	ioe.message = new Utf8(e.getMessage());
-        throw ioe;
-      }
-    }
-
-    // NB: Asynchronous operation
-    public Void deleteFamily(ByteBuffer table, ByteBuffer family) throws AIOError {
-      try {
-	admin.deleteColumn(Bytes.toBytes(table), Bytes.toBytes(family));
-	return null;
-      } catch (IOException e) {
-	AIOError ioe = new AIOError();
-	ioe.message = new Utf8(e.getMessage());
-        throw ioe;
-      }
-    }
-
-    // NB: Asynchronous operation
-    public Void modifyFamily(ByteBuffer table, ByteBuffer familyName, AFamilyDescriptor familyDescriptor) throws AIOError {
-      try {
-	admin.modifyColumn(Bytes.toBytes(table), Bytes.toBytes(familyName),
-                           AvroUtilities.afamilyDescToHColumnDesc(familyDescriptor));
+                          AvroUtil.atdToHTD(tableDescriptor));
 	return null;
       } catch (IOException e) {
 	AIOError ioe = new AIOError();
@@ -280,9 +321,12 @@ public class AvroServer {
       }
     }
     
-    public boolean tableExists(ByteBuffer table) throws AIOError {
+    // TODO(hammer): handle regions too?
+    // NB: Asynchronous operation
+    public Void flush(ByteBuffer table) throws AIOError {
       try {
-	return admin.tableExists(Bytes.toBytes(table));
+	admin.flush(Bytes.toBytes(table));
+	return null;
       } catch (IOException e) {
 	AIOError ioe = new AIOError();
 	ioe.message = new Utf8(e.getMessage());
@@ -290,9 +334,15 @@ public class AvroServer {
       }
     }
 
-    public boolean isTableEnabled(ByteBuffer table) throws AIOError {
+    //
+    // Family admin
+    //
+
+    public Void addFamily(ByteBuffer table, AFamilyDescriptor family) throws AIOError {
       try {
-	return HTable.isTableEnabled(Bytes.toBytes(table));
+	admin.addColumn(Bytes.toBytes(table), 
+                        AvroUtil.afdToHCD(family));
+	return null;
       } catch (IOException e) {
 	AIOError ioe = new AIOError();
 	ioe.message = new Utf8(e.getMessage());
@@ -300,9 +350,11 @@ public class AvroServer {
       }
     }
 
-    public Utf8 getHBaseVersion() throws AIOError {
+    // NB: Asynchronous operation
+    public Void deleteFamily(ByteBuffer table, ByteBuffer family) throws AIOError {
       try {
-	return new Utf8(admin.getClusterStatus().getHBaseVersion());
+	admin.deleteColumn(Bytes.toBytes(table), Bytes.toBytes(family));
+	return null;
       } catch (IOException e) {
 	AIOError ioe = new AIOError();
 	ioe.message = new Utf8(e.getMessage());
@@ -310,9 +362,12 @@ public class AvroServer {
       }
     }
 
-    public AClusterStatus getClusterStatus() throws AIOError {
+    // NB: Asynchronous operation
+    public Void modifyFamily(ByteBuffer table, ByteBuffer familyName, AFamilyDescriptor familyDescriptor) throws AIOError {
       try {
-	return AvroUtilities.clusterStatusToAClusterStatus(admin.getClusterStatus());
+	admin.modifyColumn(Bytes.toBytes(table), Bytes.toBytes(familyName),
+                           AvroUtil.afdToHCD(familyDescriptor));
+	return null;
       } catch (IOException e) {
 	AIOError ioe = new AIOError();
 	ioe.message = new Utf8(e.getMessage());
@@ -320,73 +375,19 @@ public class AvroServer {
       }
     }
 
-    // TODO(hammer): Handle the case where the family does not exist better?
-    public AFamilyDescriptor describeFamily(ByteBuffer table, ByteBuffer family) throws AIOError {
-      HTableInterface htable = htablePool.getTable(Bytes.toBytes(table));
-      AFamilyDescriptor afamily = new AFamilyDescriptor();
-      try {
-	HTableDescriptor htd = htable.getTableDescriptor();
-        HColumnDescriptor hcd = htd.getFamily(Bytes.toBytes(family));
-	afamily = AvroUtilities.hcolumnDescToAFamilyDesc(hcd);
-      } catch (IOException e) {
-        AIOError ioe = new AIOError();
-        ioe.message = new Utf8(e.getMessage());
-        throw ioe;
-      } finally {
-        htablePool.putTable(htable);
-      }
-      return afamily;
-    }
+    //
+    // Single-row DML
+    //
 
-    // TODO(hammer): Better to use HBaseAdmin or HTableInterface?
-    // TODO(hammer): Handle the case where the table does not exist better?
-    public ATableDescriptor describeTable(ByteBuffer table) throws AIOError {
-      HTableInterface htable = htablePool.getTable(Bytes.toBytes(table));
-      ATableDescriptor atd = new ATableDescriptor();
-      try {
-	HTableDescriptor htd = htable.getTableDescriptor();
-        atd = AvroUtilities.htableDescToATableDesc(htd);
-      } catch (IOException e) {
-        AIOError ioe = new AIOError();
-        ioe.message = new Utf8(e.getMessage());
-        throw ioe;
-      } finally {
-        htablePool.putTable(htable);
-      }
-      return atd;
-    }
-
-    public GenericArray<ATableDescriptor> listTables() throws AIOError {
-      try {
-        HTableDescriptor[] tables = this.admin.listTables();
-	Schema atdSchema = Schema.createArray(ATableDescriptor.SCHEMA$);
-        GenericData.Array<ATableDescriptor> result = null;
-	result = new GenericData.Array<ATableDescriptor>(tables.length, atdSchema);
-        for (HTableDescriptor table : tables) {
-	  ATableDescriptor atd = AvroUtilities.htableDescToATableDesc(table);
-	  result.add(atd);
-	}
-        return result;
-      } catch (IOException e) {
-	AIOError ioe = new AIOError();
-	ioe.message = new Utf8(e.getMessage());
-        throw ioe;
-      }
-    }
-
+    // TODO(hammer): Java with statement for htablepool concision?
     // TODO(hammer): Can Get have timestamp and timerange simultaneously?
     // TODO(hammer): Do I need to catch the RuntimeException of getTable?
     // TODO(hammer): Handle gets with no results
     // TODO(hammer): Uses exists(Get) to ensure columns exist
     public AResult get(ByteBuffer table, AGet aget) throws AIOError {
       HTableInterface htable = htablePool.getTable(Bytes.toBytes(table));
-      AResult aresult = new AResult();
-      aresult.row = aget.row;
-      aresult.entries = null;
       try {
-	Get get = AvroUtilities.agetToGet(aget);
-        Result result = htable.get(get);
-	aresult.entries = AvroUtilities.resultToEntries(result);
+        return AvroUtil.resultToAResult(htable.get(AvroUtil.agetToGet(aget)));
       } catch (IOException e) {
     	AIOError ioe = new AIOError();
 	ioe.message = new Utf8(e.getMessage());
@@ -394,27 +395,13 @@ public class AvroServer {
       } finally {
         htablePool.putTable(htable);
       }
-      return aresult;
     }
 
-    // TODO(hammer): Java with statement for htablepool concision?
     public Void put(ByteBuffer table, APut aput) throws AIOError {
       HTableInterface htable = htablePool.getTable(Bytes.toBytes(table));
       try {
-        Put put = new Put(Bytes.toBytes(aput.row));
-        for (AColumnValue acv : aput.columnValues) {
-  	  if (acv.timestamp != null) {
-	    put.add(Bytes.toBytes(acv.family),
-                    Bytes.toBytes(acv.qualifier),
-                    acv.timestamp,
-		    Bytes.toBytes(acv.value));
-	  } else {
-	    put.add(Bytes.toBytes(acv.family),
-                    Bytes.toBytes(acv.qualifier),
-		    Bytes.toBytes(acv.value));
-	  }
-        }
-        htable.put(put);
+	htable.put(AvroUtil.aputToPut(aput));
+        return null;
       } catch (IOException e) {
         AIOError ioe = new AIOError();
         ioe.message = new Utf8(e.getMessage());
@@ -422,7 +409,20 @@ public class AvroServer {
       } finally {
         htablePool.putTable(htable);
       }
-      return null;
+    }
+
+    public Void delete(ByteBuffer table, ADelete adelete) throws AIOError {
+      HTableInterface htable = htablePool.getTable(Bytes.toBytes(table));
+      try {
+        htable.delete(AvroUtil.adeleteToDelete(adelete));
+        return null;
+      } catch (IOException e) {
+    	AIOError ioe = new AIOError();
+	ioe.message = new Utf8(e.getMessage());
+        throw ioe;
+      } finally {
+        htablePool.putTable(htable);
+      }
     }
 
     public long incrementColumnValue(ByteBuffer table, ByteBuffer row, ByteBuffer family, ByteBuffer qualifier, long amount, boolean writeToWAL) throws AIOError {
@@ -438,10 +438,14 @@ public class AvroServer {
       }
     }
 
+    //
+    // Multi-row DML
+    //
+
     public int scannerOpen(ByteBuffer table, AScan ascan) throws AIOError {
       HTableInterface htable = htablePool.getTable(Bytes.toBytes(table));
       try {
-        Scan scan = AvroUtilities.scanFromAScan(ascan);
+        Scan scan = AvroUtil.scanFromAScan(ascan);
         return addScanner(htable.getScanner(scan));
       } catch (IOException e) {
     	AIOError ioe = new AIOError();
@@ -462,12 +466,12 @@ public class AvroServer {
         }
         scanner.close();
         removeScanner(scannerId);
+        return null;
       } catch (IOException e) {
     	AIOError ioe = new AIOError();
 	ioe.message = new Utf8(e.getMessage());
         throw ioe;
       }
-      return null;
     }
 
     public GenericArray<AResult> scannerGetRows(int scannerId, int numberOfRows) throws AIOError, AIllegalArgument {
@@ -479,26 +483,11 @@ public class AvroServer {
           throw aie;
         }
         Result[] results = null;
-        return AvroUtilities.aresultsFromResults(scanner.next(numberOfRows));
+        return AvroUtil.aresultsFromResults(scanner.next(numberOfRows));
       } catch (IOException e) {
     	AIOError ioe = new AIOError();
 	ioe.message = new Utf8(e.getMessage());
         throw ioe;
-      }
-    }
-
-    public Void delete(ByteBuffer table, ADelete adelete) throws AIOError {
-      HTableInterface htable = htablePool.getTable(Bytes.toBytes(table));
-      try {
-	Delete delete = AvroUtilities.adeleteToDelete(adelete);
-        htable.delete(delete);
-        return null;
-      } catch (IOException e) {
-    	AIOError ioe = new AIOError();
-	ioe.message = new Utf8(e.getMessage());
-        throw ioe;
-      } finally {
-        htablePool.putTable(htable);
       }
     }
   }
@@ -557,9 +546,10 @@ public class AvroServer {
     Thread.sleep(1000000);
   }
 
+  // TODO(hammer): Look at Cassandra's daemonization and integration with JSVC
   // TODO(hammer): Don't eat it after a single exception
   // TODO(hammer): Figure out why we do doMain()
-  // TODO(hammer): Figure out if we want String[] or String []
+  // TODO(hammer): Figure out if we want String[] or String [] syntax
   public static void main(String[] args) throws Exception {
     doMain(args);
   }

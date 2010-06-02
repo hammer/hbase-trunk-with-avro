@@ -2,207 +2,6 @@
   "protocol" : "HBase",
   "namespace" : "org.apache.hadoop.hbase.avro.generated",
   "types" : [ {
-    "type" : "enum",
-    "name" : "ACompressionAlgorithm",
-    "symbols" : [ "LZO", "GZ", "NONE" ]
-  }, {
-    "type" : "record",
-    "name" : "AFamilyDescriptor",
-    "fields" : [ {
-      "name" : "name",
-      "type" : "bytes"
-    }, {
-      "name" : "compression",
-      "type" : [ "ACompressionAlgorithm", "null" ]
-    }, {
-      "name" : "maxVersions",
-      "type" : [ "int", "null" ]
-    }, {
-      "name" : "blocksize",
-      "type" : [ "int", "null" ]
-    }, {
-      "name" : "inMemory",
-      "type" : [ "boolean", "null" ]
-    }, {
-      "name" : "timeToLive",
-      "type" : [ "int", "null" ]
-    }, {
-      "name" : "blockCacheEnabled",
-      "type" : [ "boolean", "null" ]
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "ATableDescriptor",
-    "fields" : [ {
-      "name" : "name",
-      "type" : "bytes"
-    }, {
-      "name" : "families",
-      "type" : [ {
-        "type" : "array",
-        "items" : "AFamilyDescriptor"
-      }, "null" ]
-    }, {
-      "name" : "maxFileSize",
-      "type" : [ "long", "null" ]
-    }, {
-      "name" : "memStoreFlushSize",
-      "type" : [ "long", "null" ]
-    }, {
-      "name" : "rootRegion",
-      "type" : [ "boolean", "null" ]
-    }, {
-      "name" : "metaRegion",
-      "type" : [ "boolean", "null" ]
-    }, {
-      "name" : "metaTable",
-      "type" : [ "boolean", "null" ]
-    }, {
-      "name" : "readOnly",
-      "type" : [ "boolean", "null" ]
-    }, {
-      "name" : "deferredLogFlush",
-      "type" : [ "boolean", "null" ]
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "AColumn",
-    "fields" : [ {
-      "name" : "family",
-      "type" : "bytes"
-    }, {
-      "name" : "qualifier",
-      "type" : [ "bytes", "null" ]
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "AResultEntry",
-    "fields" : [ {
-      "name" : "family",
-      "type" : "bytes"
-    }, {
-      "name" : "qualifier",
-      "type" : "bytes"
-    }, {
-      "name" : "value",
-      "type" : "bytes"
-    }, {
-      "name" : "timestamp",
-      "type" : "long"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "AResult",
-    "fields" : [ {
-      "name" : "row",
-      "type" : "bytes"
-    }, {
-      "name" : "entries",
-      "type" : [ {
-        "type" : "array",
-        "items" : "AResultEntry"
-      }, "null" ]
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "ATimeRange",
-    "fields" : [ {
-      "name" : "minStamp",
-      "type" : "long"
-    }, {
-      "name" : "maxStamp",
-      "type" : "long"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "AGet",
-    "fields" : [ {
-      "name" : "row",
-      "type" : "bytes"
-    }, {
-      "name" : "columns",
-      "type" : [ {
-        "type" : "array",
-        "items" : "AColumn"
-      }, "null" ]
-    }, {
-      "name" : "timestamp",
-      "type" : [ "long", "null" ]
-    }, {
-      "name" : "timerange",
-      "type" : [ "ATimeRange", "null" ]
-    }, {
-      "name" : "maxVersions",
-      "type" : [ "int", "null" ]
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "AColumnValue",
-    "fields" : [ {
-      "name" : "family",
-      "type" : "bytes"
-    }, {
-      "name" : "qualifier",
-      "type" : "bytes"
-    }, {
-      "name" : "value",
-      "type" : "bytes"
-    }, {
-      "name" : "timestamp",
-      "type" : [ "long", "null" ]
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "APut",
-    "fields" : [ {
-      "name" : "row",
-      "type" : "bytes"
-    }, {
-      "name" : "columnValues",
-      "type" : {
-        "type" : "array",
-        "items" : "AColumnValue"
-      }
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "AScan",
-    "fields" : [ {
-      "name" : "startRow",
-      "type" : [ "bytes", "null" ]
-    }, {
-      "name" : "stopRow",
-      "type" : [ "bytes", "null" ]
-    }, {
-      "name" : "columns",
-      "type" : [ {
-        "type" : "array",
-        "items" : "AColumn"
-      }, "null" ]
-    }, {
-      "name" : "timestamp",
-      "type" : [ "long", "null" ]
-    }, {
-      "name" : "timerange",
-      "type" : [ "ATimeRange", "null" ]
-    }, {
-      "name" : "maxVersions",
-      "type" : [ "int", "null" ]
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "ADelete",
-    "fields" : [ {
-      "name" : "row",
-      "type" : "bytes"
-    }, {
-      "name" : "columns",
-      "type" : [ {
-        "type" : "array",
-        "items" : "AColumn"
-      }, "null" ]
-    } ]
-  }, {
     "type" : "record",
     "name" : "AServerAddress",
     "fields" : [ {
@@ -331,6 +130,207 @@
       "type" : "int"
     } ]
   }, {
+    "type" : "enum",
+    "name" : "ACompressionAlgorithm",
+    "symbols" : [ "LZO", "GZ", "NONE" ]
+  }, {
+    "type" : "record",
+    "name" : "AFamilyDescriptor",
+    "fields" : [ {
+      "name" : "name",
+      "type" : "bytes"
+    }, {
+      "name" : "compression",
+      "type" : [ "ACompressionAlgorithm", "null" ]
+    }, {
+      "name" : "maxVersions",
+      "type" : [ "int", "null" ]
+    }, {
+      "name" : "blocksize",
+      "type" : [ "int", "null" ]
+    }, {
+      "name" : "inMemory",
+      "type" : [ "boolean", "null" ]
+    }, {
+      "name" : "timeToLive",
+      "type" : [ "int", "null" ]
+    }, {
+      "name" : "blockCacheEnabled",
+      "type" : [ "boolean", "null" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "ATableDescriptor",
+    "fields" : [ {
+      "name" : "name",
+      "type" : "bytes"
+    }, {
+      "name" : "families",
+      "type" : [ {
+        "type" : "array",
+        "items" : "AFamilyDescriptor"
+      }, "null" ]
+    }, {
+      "name" : "maxFileSize",
+      "type" : [ "long", "null" ]
+    }, {
+      "name" : "memStoreFlushSize",
+      "type" : [ "long", "null" ]
+    }, {
+      "name" : "rootRegion",
+      "type" : [ "boolean", "null" ]
+    }, {
+      "name" : "metaRegion",
+      "type" : [ "boolean", "null" ]
+    }, {
+      "name" : "metaTable",
+      "type" : [ "boolean", "null" ]
+    }, {
+      "name" : "readOnly",
+      "type" : [ "boolean", "null" ]
+    }, {
+      "name" : "deferredLogFlush",
+      "type" : [ "boolean", "null" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "AColumn",
+    "fields" : [ {
+      "name" : "family",
+      "type" : "bytes"
+    }, {
+      "name" : "qualifier",
+      "type" : [ "bytes", "null" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "ATimeRange",
+    "fields" : [ {
+      "name" : "minStamp",
+      "type" : "long"
+    }, {
+      "name" : "maxStamp",
+      "type" : "long"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "AGet",
+    "fields" : [ {
+      "name" : "row",
+      "type" : "bytes"
+    }, {
+      "name" : "columns",
+      "type" : [ {
+        "type" : "array",
+        "items" : "AColumn"
+      }, "null" ]
+    }, {
+      "name" : "timestamp",
+      "type" : [ "long", "null" ]
+    }, {
+      "name" : "timerange",
+      "type" : [ "ATimeRange", "null" ]
+    }, {
+      "name" : "maxVersions",
+      "type" : [ "int", "null" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "AResultEntry",
+    "fields" : [ {
+      "name" : "family",
+      "type" : "bytes"
+    }, {
+      "name" : "qualifier",
+      "type" : "bytes"
+    }, {
+      "name" : "value",
+      "type" : "bytes"
+    }, {
+      "name" : "timestamp",
+      "type" : "long"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "AResult",
+    "fields" : [ {
+      "name" : "row",
+      "type" : "bytes"
+    }, {
+      "name" : "entries",
+      "type" : [ {
+        "type" : "array",
+        "items" : "AResultEntry"
+      }, "null" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "AColumnValue",
+    "fields" : [ {
+      "name" : "family",
+      "type" : "bytes"
+    }, {
+      "name" : "qualifier",
+      "type" : "bytes"
+    }, {
+      "name" : "value",
+      "type" : "bytes"
+    }, {
+      "name" : "timestamp",
+      "type" : [ "long", "null" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "APut",
+    "fields" : [ {
+      "name" : "row",
+      "type" : "bytes"
+    }, {
+      "name" : "columnValues",
+      "type" : {
+        "type" : "array",
+        "items" : "AColumnValue"
+      }
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "ADelete",
+    "fields" : [ {
+      "name" : "row",
+      "type" : "bytes"
+    }, {
+      "name" : "columns",
+      "type" : [ {
+        "type" : "array",
+        "items" : "AColumn"
+      }, "null" ]
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "AScan",
+    "fields" : [ {
+      "name" : "startRow",
+      "type" : [ "bytes", "null" ]
+    }, {
+      "name" : "stopRow",
+      "type" : [ "bytes", "null" ]
+    }, {
+      "name" : "columns",
+      "type" : [ {
+        "type" : "array",
+        "items" : "AColumn"
+      }, "null" ]
+    }, {
+      "name" : "timestamp",
+      "type" : [ "long", "null" ]
+    }, {
+      "name" : "timerange",
+      "type" : [ "ATimeRange", "null" ]
+    }, {
+      "name" : "maxVersions",
+      "type" : [ "int", "null" ]
+    } ]
+  }, {
     "type" : "error",
     "name" : "AIOError",
     "fields" : [ {
@@ -360,6 +360,59 @@
     } ]
   } ],
   "messages" : {
+    "getHBaseVersion" : {
+      "request" : [ ],
+      "response" : "string",
+      "errors" : [ "AIOError" ]
+    },
+    "getClusterStatus" : {
+      "request" : [ ],
+      "response" : "AClusterStatus",
+      "errors" : [ "AIOError" ]
+    },
+    "listTables" : {
+      "request" : [ ],
+      "response" : {
+        "type" : "array",
+        "items" : "ATableDescriptor"
+      },
+      "errors" : [ "AIOError" ]
+    },
+    "describeTable" : {
+      "request" : [ {
+        "name" : "table",
+        "type" : "bytes"
+      } ],
+      "response" : "ATableDescriptor",
+      "errors" : [ "AIOError" ]
+    },
+    "isTableEnabled" : {
+      "request" : [ {
+        "name" : "table",
+        "type" : "bytes"
+      } ],
+      "response" : "boolean",
+      "errors" : [ "AIOError" ]
+    },
+    "tableExists" : {
+      "request" : [ {
+        "name" : "table",
+        "type" : "bytes"
+      } ],
+      "response" : "boolean",
+      "errors" : [ "AIOError" ]
+    },
+    "describeFamily" : {
+      "request" : [ {
+        "name" : "table",
+        "type" : "bytes"
+      }, {
+        "name" : "family",
+        "type" : "bytes"
+      } ],
+      "response" : "AFamilyDescriptor",
+      "errors" : [ "AIOError" ]
+    },
     "createTable" : {
       "request" : [ {
         "name" : "table",
@@ -383,6 +436,30 @@
       }, {
         "name" : "tableDescriptor",
         "type" : "ATableDescriptor"
+      } ],
+      "response" : "null",
+      "errors" : [ "AIOError" ]
+    },
+    "enableTable" : {
+      "request" : [ {
+        "name" : "table",
+        "type" : "bytes"
+      } ],
+      "response" : "null",
+      "errors" : [ "AIOError" ]
+    },
+    "disableTable" : {
+      "request" : [ {
+        "name" : "table",
+        "type" : "bytes"
+      } ],
+      "response" : "null",
+      "errors" : [ "AIOError" ]
+    },
+    "flush" : {
+      "request" : [ {
+        "name" : "table",
+        "type" : "bytes"
       } ],
       "response" : "null",
       "errors" : [ "AIOError" ]
@@ -423,81 +500,15 @@
       "response" : "null",
       "errors" : [ "AIOError" ]
     },
-    "enableTable" : {
-      "request" : [ {
-        "name" : "table",
-        "type" : "bytes"
-      } ],
-      "response" : "null",
-      "errors" : [ "AIOError" ]
-    },
-    "disableTable" : {
-      "request" : [ {
-        "name" : "table",
-        "type" : "bytes"
-      } ],
-      "response" : "null",
-      "errors" : [ "AIOError" ]
-    },
-    "flush" : {
-      "request" : [ {
-        "name" : "table",
-        "type" : "bytes"
-      } ],
-      "response" : "null",
-      "errors" : [ "AIOError" ]
-    },
-    "getHBaseVersion" : {
-      "request" : [ ],
-      "response" : "string",
-      "errors" : [ "AIOError" ]
-    },
-    "getClusterStatus" : {
-      "request" : [ ],
-      "response" : "AClusterStatus",
-      "errors" : [ "AIOError" ]
-    },
-    "listTables" : {
-      "request" : [ ],
-      "response" : {
-        "type" : "array",
-        "items" : "ATableDescriptor"
-      },
-      "errors" : [ "AIOError" ]
-    },
-    "isTableEnabled" : {
-      "request" : [ {
-        "name" : "table",
-        "type" : "bytes"
-      } ],
-      "response" : "boolean",
-      "errors" : [ "AIOError" ]
-    },
-    "tableExists" : {
-      "request" : [ {
-        "name" : "table",
-        "type" : "bytes"
-      } ],
-      "response" : "boolean",
-      "errors" : [ "AIOError" ]
-    },
-    "describeTable" : {
-      "request" : [ {
-        "name" : "table",
-        "type" : "bytes"
-      } ],
-      "response" : "ATableDescriptor",
-      "errors" : [ "AIOError" ]
-    },
-    "describeFamily" : {
+    "get" : {
       "request" : [ {
         "name" : "table",
         "type" : "bytes"
       }, {
-        "name" : "family",
-        "type" : "bytes"
+        "name" : "get",
+        "type" : "AGet"
       } ],
-      "response" : "AFamilyDescriptor",
+      "response" : "AResult",
       "errors" : [ "AIOError" ]
     },
     "put" : {
@@ -507,6 +518,17 @@
       }, {
         "name" : "put",
         "type" : "APut"
+      } ],
+      "response" : "null",
+      "errors" : [ "AIOError" ]
+    },
+    "delete" : {
+      "request" : [ {
+        "name" : "table",
+        "type" : "bytes"
+      }, {
+        "name" : "delete",
+        "type" : "ADelete"
       } ],
       "response" : "null",
       "errors" : [ "AIOError" ]
@@ -532,17 +554,6 @@
         "type" : "boolean"
       } ],
       "response" : "long",
-      "errors" : [ "AIOError" ]
-    },
-    "get" : {
-      "request" : [ {
-        "name" : "table",
-        "type" : "bytes"
-      }, {
-        "name" : "get",
-        "type" : "AGet"
-      } ],
-      "response" : "AResult",
       "errors" : [ "AIOError" ]
     },
     "scannerOpen" : {
@@ -577,17 +588,6 @@
         "items" : "AResult"
       },
       "errors" : [ "AIOError", "AIllegalArgument" ]
-    },
-    "delete" : {
-      "request" : [ {
-        "name" : "table",
-        "type" : "bytes"
-      }, {
-        "name" : "delete",
-        "type" : "ADelete"
-      } ],
-      "response" : "null",
-      "errors" : [ "AIOError" ]
     }
   }
 }
