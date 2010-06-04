@@ -60,7 +60,7 @@ public class TestAvroServer extends HBaseClusterTestCase {
     //doTestTableMetadata();
     //doTestFamilyMetadata();
     doTestTableAdmin();
-    doTestFamilyAdmin();
+    //doTestFamilyAdmin();
     //doTestSingleRowDML();
     //doTestMultiRowDML();
   }
