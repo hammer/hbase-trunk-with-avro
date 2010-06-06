@@ -17,15 +17,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.hadoop.hbase.avro;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.hadoop.hbase.HBaseClusterTestCase;
+import org.apache.hadoop.hbase.HBaseTestingUtility;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
 
 import org.apache.hadoop.hbase.avro.generated.ATableDescriptor;
 
@@ -33,9 +43,11 @@ import org.apache.hadoop.hbase.avro.generated.ATableDescriptor;
  * Unit testing for AvroServer.HBaseImpl, a part of the
  * org.apache.hadoop.hbase.avro package.
  */
-public class TestAvroServer extends HBaseClusterTestCase {
+public class TestAvroServer {
+  private final static HBaseTestingUtility TEST_UTIL = new HBaseTestingUtility();
 
   // Static names for tables, columns, rows, and values
+  // TODO(hammer): Better style to define these in test method?
   private static ByteBuffer tableAname = ByteBuffer.wrap(Bytes.toBytes("tableA"));
   private static ByteBuffer tableBname = ByteBuffer.wrap(Bytes.toBytes("tableB"));
   private static ByteBuffer columnAname = ByteBuffer.wrap(Bytes.toBytes("ColumnA"));
@@ -48,21 +60,35 @@ public class TestAvroServer extends HBaseClusterTestCase {
   private static ByteBuffer valueDname = ByteBuffer.wrap(Bytes.toBytes("valueD"));
 
   /**
-   * Runs all of the tests under a single JUnit test method.  We
-   * consolidate all testing to one method because HBaseClusterTestCase
-   * is prone to OutOfMemoryExceptions when there are three or more
-   * JUnit test methods.
-   *
-   * @throws Exception
+   * @throws java.lang.Exception
    */
-  public void testAll() throws Exception {
-    //doTestClusterMetadata();
-    //doTestTableMetadata();
-    //doTestFamilyMetadata();
-    doTestTableAdmin();
-    //doTestFamilyAdmin();
-    //doTestSingleRowDML();
-    //doTestMultiRowDML();
+  @BeforeClass
+  public static void setUpBeforeClass() throws Exception {
+    TEST_UTIL.startMiniCluster(3);
+  }
+
+  /**
+   * @throws java.lang.Exception
+   */
+  @AfterClass
+  public static void tearDownAfterClass() throws Exception {
+    TEST_UTIL.shutdownMiniCluster();
+  }
+
+  /**
+   * @throws java.lang.Exception
+   */
+  @Before
+  public void setUp() throws Exception {
+    // Nothing to do.
+  }
+
+  /**
+   * @throws java.lang.Exception
+   */
+  @After
+  public void tearDown() throws Exception {
+    // Nothing to do.
   }
 
   /**
@@ -70,7 +96,8 @@ public class TestAvroServer extends HBaseClusterTestCase {
    *
    * @throws Exception
    */
-  public void doTestTableAdmin() throws Exception {
+  @Test
+  public void testTableAndAdmin() throws Exception {
     AvroServer.HBaseImpl impl = new AvroServer.HBaseImpl();
 
     assertEquals(impl.listTables().size(), 0);
