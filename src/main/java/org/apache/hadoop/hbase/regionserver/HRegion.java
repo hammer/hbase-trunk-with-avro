@@ -1523,17 +1523,14 @@ public class HRegion implements HConstants, HeapSize { // , Writable{
    * @return <code>true</code> when updating the time stamp completed.
    */
   private boolean updateKeys(List<KeyValue> keys, byte [] now) {
-    if(keys == null || keys.isEmpty()) {
+    if (keys == null || keys.isEmpty()) {
       return false;
     }
-    for(KeyValue key : keys) {
-      if(key.getTimestamp() == HConstants.LATEST_TIMESTAMP) {
-        key.updateLatestStamp(now);
-      }
+    for (KeyValue key : keys) {
+      key.updateLatestStamp(now);
     }
     return true;
   }
-
 
 //  /*
 //   * Utility method to verify values length.
@@ -2065,7 +2062,7 @@ public class HRegion implements HConstants, HeapSize { // , Writable{
         } else {
           byte [] nextRow;
           do {
-            this.storeHeap.next(results, limit);
+            this.storeHeap.next(results, limit - results.size());
             if (limit > 0 && results.size() == limit) {
               if (this.filter != null && filter.hasFilterRow()) throw new IncompatibleFilterException(
                   "Filter with filterRow(List<KeyValue>) incompatible with scan with limit!");

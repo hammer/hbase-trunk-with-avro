@@ -1520,7 +1520,7 @@ public class HLog implements HConstants, Syncable {
           queue = new LinkedList<Entry>();
           splitLogsMap.put(region, queue);
         }
-        queue.addFirst(entry);
+        queue.addLast(entry);
         editsCount++;
       }
       LOG.debug("Pushed=" + editsCount + " entries from " + path);
@@ -1552,10 +1552,7 @@ public class HLog implements HConstants, Syncable {
         try {
           int editsCount = 0;
           WriterAndPath wap = logWriters.get(region);
-          for (ListIterator<Entry> iterator = entries.listIterator();
-               iterator.hasNext();) {
-            Entry logEntry =  iterator.next();
-
+          for (Entry logEntry: entries) {
             if (wap == null) {
               Path logFile = getRegionLogPath(logEntry, rootDir);
               if (fs.exists(logFile)) {
@@ -1570,7 +1567,6 @@ public class HLog implements HConstants, Syncable {
               LOG.debug("Creating writer path=" + logFile +
                 " region=" + Bytes.toStringBinary(region));
             }
-
             wap.w.append(logEntry);
             editsCount++;
           }
