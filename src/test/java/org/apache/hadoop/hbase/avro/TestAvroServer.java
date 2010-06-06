@@ -37,6 +37,11 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericArray;
+import org.apache.avro.generic.GenericData;
+
+import org.apache.hadoop.hbase.avro.generated.AFamilyDescriptor;
 import org.apache.hadoop.hbase.avro.generated.ATableDescriptor;
 
 /**
@@ -50,8 +55,8 @@ public class TestAvroServer {
   // TODO(hammer): Better style to define these in test method?
   private static ByteBuffer tableAname = ByteBuffer.wrap(Bytes.toBytes("tableA"));
   private static ByteBuffer tableBname = ByteBuffer.wrap(Bytes.toBytes("tableB"));
-  private static ByteBuffer columnAname = ByteBuffer.wrap(Bytes.toBytes("ColumnA"));
-  private static ByteBuffer columnBname = ByteBuffer.wrap(Bytes.toBytes("ColumnB"));
+  private static ByteBuffer familyAname = ByteBuffer.wrap(Bytes.toBytes("FamilyA"));
+  private static ByteBuffer familyBname = ByteBuffer.wrap(Bytes.toBytes("FamilyB"));
   private static ByteBuffer rowAname = ByteBuffer.wrap(Bytes.toBytes("rowA"));
   private static ByteBuffer rowBname = ByteBuffer.wrap(Bytes.toBytes("rowB"));
   private static ByteBuffer valueAname = ByteBuffer.wrap(Bytes.toBytes("valueA"));
@@ -92,12 +97,12 @@ public class TestAvroServer {
   }
 
   /**
-   * Tests for creating, enabling, disabling, and deleting tables.
+   * Tests for creating, enabling, disabling, modifying, and deleting tables.
    *
    * @throws Exception
    */
   @Test
-  public void testTableAndAdmin() throws Exception {
+  public void testTableAdmin() throws Exception {
     AvroServer.HBaseImpl impl = new AvroServer.HBaseImpl();
 
     assertEquals(impl.listTables().size(), 0);
@@ -107,6 +112,7 @@ public class TestAvroServer {
     impl.createTable(tableA);
     assertEquals(impl.listTables().size(), 1);
     assertTrue(impl.isTableEnabled(tableAname));
+    assertTrue(impl.tableExists(tableAname));
 
     ATableDescriptor tableB = new ATableDescriptor();
     tableB.name = tableBname;
@@ -121,9 +127,34 @@ public class TestAvroServer {
 
     impl.disableTable(tableAname);
     assertFalse(impl.isTableEnabled(tableAname));
+
+    tableA.maxFileSize = 123456L;
+    impl.modifyTable(tableAname, tableA);
+    assertEquals((long) impl.describeTable(tableAname).maxFileSize, 123456L);
+
     impl.enableTable(tableAname);
     assertTrue(impl.isTableEnabled(tableAname));
     impl.disableTable(tableAname);
     impl.deleteTable(tableAname);
+  }
+  /**
+   * Tests for creating, enabling, disabling, and deleting tables.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testFamilyAdmin() throws Exception {
+    AvroServer.HBaseImpl impl = new AvroServer.HBaseImpl();
+
+    ATableDescriptor tableA = new ATableDescriptor();
+    tableA.name = tableAname;
+    AFamilyDescriptor familyA = new AFamilyDescriptor();
+    familyA.name = familyAname;
+    Schema familyArraySchema = Schema.createArray(AFamilyDescriptor.SCHEMA$);
+    GenericArray<AFamilyDescriptor> families = new GenericData.Array<AFamilyDescriptor>(1, familyArraySchema);
+    families.add(familyA);
+    tableA.families = families;
+    impl.createTable(tableA);    
+    assertEquals(impl.describeTable(tableAname).families.size(), 1);
   }
 }
