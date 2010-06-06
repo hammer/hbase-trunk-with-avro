@@ -263,12 +263,6 @@ public class AvroUtil {
   //
 
   // TODO(hammer): More concise idiom than if not null assign?
-  /**
-   * Convert an AGet to a Get.
-   * 
-   * @param aget AGet
-   * @return HBase client Get object
-   */
   static public Get agetToGet(AGet aget) throws IOException {
     Get get = new Get(Bytes.toBytes(aget.row));
     if (aget.columns != null) {

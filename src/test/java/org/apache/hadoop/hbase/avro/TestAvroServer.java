@@ -54,13 +54,6 @@ public class TestAvroServer {
   private static ByteBuffer tableAname = ByteBuffer.wrap(Bytes.toBytes("tableA"));
   private static ByteBuffer tableBname = ByteBuffer.wrap(Bytes.toBytes("tableB"));
   private static ByteBuffer familyAname = ByteBuffer.wrap(Bytes.toBytes("FamilyA"));
-  private static ByteBuffer familyBname = ByteBuffer.wrap(Bytes.toBytes("FamilyB"));
-  private static ByteBuffer rowAname = ByteBuffer.wrap(Bytes.toBytes("rowA"));
-  private static ByteBuffer rowBname = ByteBuffer.wrap(Bytes.toBytes("rowB"));
-  private static ByteBuffer valueAname = ByteBuffer.wrap(Bytes.toBytes("valueA"));
-  private static ByteBuffer valueBname = ByteBuffer.wrap(Bytes.toBytes("valueB"));
-  private static ByteBuffer valueCname = ByteBuffer.wrap(Bytes.toBytes("valueC"));
-  private static ByteBuffer valueDname = ByteBuffer.wrap(Bytes.toBytes("valueD"));
 
   /**
    * @throws java.lang.Exception
@@ -136,7 +129,7 @@ public class TestAvroServer {
     impl.deleteTable(tableAname);
   }
   /**
-   * Tests for creating, enabling, disabling, and deleting tables.
+   * Tests for creating, modifying, and deleting column families.
    *
    * @throws Exception
    */
